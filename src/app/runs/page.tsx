@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { MODELS } from "@/lib/providers/pricing";
 import RunForm from "./RunForm";
@@ -59,7 +60,11 @@ async function RunList() {
       <tbody>
         {runs.map((r) => (
           <tr key={r.id} className="border-t border-gray-800">
-            <td className="py-2 pr-4">{r.testSet.name}</td>
+            <td className="py-2 pr-4">
+              <Link href={`/results/${r.id}`} className="underline">
+                {r.testSet.name}
+              </Link>
+            </td>
             <td className="py-2 pr-4">{r.prompt.name}</td>
             <td className="py-2 pr-4 font-mono">{r.model}</td>
             <td className="py-2 pr-4">{r.status}</td>
