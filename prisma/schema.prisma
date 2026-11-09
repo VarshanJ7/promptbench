@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// An "exam paper": a named set of test cases
+model TestSet {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime   @default(now())
+  cases       TestCase[]
+  runs        Run[]
+}
+
+// One question + its correct answer
+model TestCase {
+  id        String   @id @default(cuid())
+  testSetId String
+  testSet   TestSet  @relation(fields: [testSetId], references: [id], onDelete: Cascade)
+  input     String
+  expected  String
+  createdAt DateTime @default(now())
+  results   Result[]
+}
+
+// The instruction you give the AI, e.g. "Classify this message: {{input}}"
+model Prompt {
+  id        String   @id @default(cuid())
+  name      String
+  template  String
+  createdAt DateTime @default(now())
+  runs      Run[]
+}
+
+// One exam sitting: one test set + one prompt + one model
+model Run {
+  id           String   @id @default(cuid())
+  testSetId    String
+  testSet      TestSet  @relation(fields: [testSetId], references: [id], onDelete: Cascade)
+  promptId     String
+  prompt       Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  model        String
+  status       String   @default("pending")
+  accuracy     Float?
+  avgLatencyMs Float?
+  totalCostUsd Float?
+  createdAt    DateTime @default(now())
+  results      Result[]
+}
+
+// The AI's answer to one question in one run
+model Result {
+  id           String   @id @default(cuid())
+  runId        String
+  run          Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  testCaseId   String
+  testCase     TestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
+  output       String
+  correct      Boolean
+  latencyMs    Int
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  costUsd      Float    @default(0)
+  createdAt    DateTime @default(now())
+}
