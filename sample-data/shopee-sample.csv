@@ -1,0 +1,16 @@
+input,expected
+"Parcel dah 10 hari tak sampai lagi",delivery_issue
+"I ordered black but received white",wrong_item
+"Want to return, item rosak. Please refund",refund_request
+"Kain nipis gila, tak berbaloi",product_quality
+"Fast delivery, seller baik, will buy again!",praise
+"Rider cakap dah hantar tapi I tak terima apa-apa",delivery_issue
+"Salah saiz la, I order M tapi dapat XL",wrong_item
+"Boleh refund tak? Barang tak sama dengan gambar",refund_request
+"Kualiti teruk, baru pakai sekali dah koyak",product_quality
+"Terbaik! Barang sampai awal dan packing kemas",praise
+"Tracking tak update dah 5 hari",delivery_issue
+"Wrong colour sent, I wanted red not pink",wrong_item
+"Please cancel and refund my order, I changed my mind",refund_request
+"The charger stopped working after two days",product_quality
+"Seller very helpful, item exactly as described",praise
