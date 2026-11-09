@@ -1,0 +1,29 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/prisma";
+
+export type PromptFormState = { error?: string; success?: string };
+
+const PLACEHOLDER = "{{input}}";
+
+export async function createPrompt(
+  _prev: PromptFormState,
+  formData: FormData
+): Promise<PromptFormState> {
+  const name = String(formData.get("name") ?? "").trim();
+  const template = String(formData.get("template") ?? "").trim();
+
+  if (!name) return { error: "Please enter a name for the prompt." };
+  if (!template) return { error: "Please enter a prompt template." };
+  if (!template.includes(PLACEHOLDER)) {
+    return {
+      error: `The template must contain ${PLACEHOLDER} — that's where each test case's input gets inserted.`,
+    };
+  }
+
+  await prisma.prompt.create({ data: { name, template } });
+
+  revalidatePath("/prompts");
+  return { success: `Saved prompt "${name}".` };
+}
