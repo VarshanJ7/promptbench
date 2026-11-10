@@ -2,6 +2,8 @@
 
 import Papa from "papaparse";
 import { revalidatePath } from "next/cache";
+import { canWrite, LOCKED_MESSAGE } from "@/lib/auth";
+import { MAX_UPLOAD_BYTES } from "@/lib/limits";
 import { prisma } from "@/lib/prisma";
 
 export type UploadState = { error?: string; success?: string };
@@ -12,12 +14,17 @@ export async function uploadTestSet(
   _prev: UploadState,
   formData: FormData
 ): Promise<UploadState> {
+  if (!(await canWrite())) return { error: LOCKED_MESSAGE };
+
   const name = String(formData.get("name") ?? "").trim();
   const file = formData.get("file");
 
   if (!name) return { error: "Please enter a name for the test set." };
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Please choose a CSV file." };
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    return { error: `File is too large (max ${MAX_UPLOAD_BYTES / 1_000_000} MB).` };
   }
 
   const text = await file.text();

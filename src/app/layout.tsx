@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import { Suspense } from "react";
+import AuthStatus from "./AuthStatus";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,6 +36,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Link href="/runs">Runs</Link>
           <Link href="/results">Results</Link>
           <Link href="/playground">Playground</Link>
+          <span className="ml-auto">
+            <Suspense fallback={null}>
+              <AuthStatus />
+            </Suspense>
+          </span>
         </nav>
         {children}
       </body>

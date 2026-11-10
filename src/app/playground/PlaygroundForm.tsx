@@ -29,7 +29,7 @@ export default function PlaygroundForm({
           >
             {models.map((m) => (
               <option key={m.id} value={m.id} className="text-black">
-                {m.label} ({m.id})
+                {m.label}
               </option>
             ))}
           </select>

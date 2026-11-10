@@ -1,8 +1,13 @@
 import "server-only";
-import type { CompletionResult, Provider } from "./types";
+import {
+  maxOutputTokens,
+  readJson,
+  REQUEST_TIMEOUT_MS,
+  type CompletionResult,
+  type Provider,
+} from "./types";
 
 const URL = "https://api.openai.com/v1/chat/completions";
-const TIMEOUT_MS = 60_000;
 
 type ChatCompletionResponse = {
   choices?: { message?: { content?: string | null } }[];
@@ -12,6 +17,8 @@ type ChatCompletionResponse = {
 
 export const openaiProvider: Provider = {
   id: "openai",
+  label: "OpenAI",
+  apiKeyEnv: "OPENAI_API_KEY",
 
   async complete(model: string, prompt: string): Promise<CompletionResult> {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -27,12 +34,14 @@ export const openaiProvider: Provider = {
       body: JSON.stringify({
         model,
         messages: [{ role: "user", content: prompt }],
+        // Counts reasoning tokens too on GPT-5 models.
+        max_completion_tokens: maxOutputTokens(),
       }),
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
     const latencyMs = Math.round(performance.now() - start);
 
-    const data = (await res.json().catch(() => ({}))) as ChatCompletionResponse;
+    const data = await readJson<ChatCompletionResponse>(res);
     if (!res.ok) {
       throw new Error(
         `OpenAI ${res.status}: ${data.error?.message ?? res.statusText}`
@@ -42,6 +51,7 @@ export const openaiProvider: Provider = {
     return {
       text: data.choices?.[0]?.message?.content ?? "",
       inputTokens: data.usage?.prompt_tokens ?? 0,
+      // completion_tokens already includes reasoning tokens.
       outputTokens: data.usage?.completion_tokens ?? 0,
       latencyMs,
     };

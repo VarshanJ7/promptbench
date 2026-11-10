@@ -47,6 +47,9 @@ model Run {
   model        String
   status       String   @default("pending")
   accuracy     Float?
+  // Share of cases where the output contains the expected label as a whole
+  // word and no other label (ignores formatting). Null for unscored runs.
+  lenientAccuracy Float?
   avgLatencyMs Float?
   totalCostUsd Float?
   createdAt    DateTime @default(now())
@@ -62,6 +65,7 @@ model Result {
   testCase     TestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
   output       String
   correct      Boolean
+  lenientCorrect Boolean @default(false)
   latencyMs    Int
   inputTokens  Int      @default(0)
   outputTokens Int      @default(0)

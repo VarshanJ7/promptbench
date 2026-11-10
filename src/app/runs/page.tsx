@@ -1,10 +1,18 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { connection } from "next/server";
+import { MAX_CASES_PER_RUN, MAX_RUNS_PER_HOUR } from "@/lib/limits";
 import { prisma } from "@/lib/prisma";
-import { MODELS } from "@/lib/providers/pricing";
+import { availableModels, missingProviderKeys } from "@/lib/providers";
 import RunForm from "./RunForm";
 
+// A run happens inside the Start-run Server Action; give it up to 5 minutes
+// on hosts that enforce a function timeout (e.g. Vercel).
+export const maxDuration = 300;
+
 async function RunFormLoader() {
+  // Read API-key presence per request, not baked in at build time.
+  await connection();
   const [testSets, prompts] = await Promise.all([
     prisma.testSet.findMany({
       orderBy: { createdAt: "desc" },
@@ -20,10 +28,13 @@ async function RunFormLoader() {
         label: `${t.name} (${t._count.cases} cases)`,
       }))}
       prompts={prompts.map((p) => ({ id: p.id, label: p.name }))}
-      models={Object.entries(MODELS).map(([id, m]) => ({
-        id,
-        label: `${m.label} (${id})`,
+      models={availableModels().map((m) => ({
+        id: m.id,
+        label: m.label,
+        group: m.provider,
       }))}
+      missingKeys={missingProviderKeys()}
+      limitsNote={`Limits: up to ${MAX_CASES_PER_RUN()} cases per run, ${MAX_RUNS_PER_HOUR()} runs per hour.`}
     />
   );
 }
@@ -52,7 +63,8 @@ async function RunList() {
           <th className="py-2 pr-4">Model</th>
           <th className="py-2 pr-4">Status</th>
           <th className="py-2 pr-4">Results</th>
-          <th className="py-2 pr-4">Accuracy</th>
+          <th className="py-2 pr-4">Exact</th>
+          <th className="py-2 pr-4">Lenient</th>
           <th className="py-2 pr-4">Avg latency</th>
           <th className="py-2 pr-4">Cost</th>
         </tr>
@@ -71,6 +83,11 @@ async function RunList() {
             <td className="py-2 pr-4">{r._count.results}</td>
             <td className="py-2 pr-4">
               {r.accuracy != null ? `${(r.accuracy * 100).toFixed(1)}%` : "—"}
+            </td>
+            <td className="py-2 pr-4">
+              {r.lenientAccuracy != null
+                ? `${(r.lenientAccuracy * 100).toFixed(1)}%`
+                : "—"}
             </td>
             <td className="py-2 pr-4">
               {r.avgLatencyMs != null ? `${Math.round(r.avgLatencyMs)} ms` : "—"}

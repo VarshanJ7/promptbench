@@ -52,10 +52,11 @@ async function Comparison({
     failedCounts.map((f) => [f.runId, f._count._all])
   );
 
-  // Best accuracy first; on a tie, cheaper first.
+  // Best exact accuracy first, then lenient; on a tie, cheaper first.
   runs.sort(
     (a, b) =>
       (b.accuracy ?? -1) - (a.accuracy ?? -1) ||
+      (b.lenientAccuracy ?? -1) - (a.lenientAccuracy ?? -1) ||
       (a.totalCostUsd ?? Infinity) - (b.totalCostUsd ?? Infinity)
   );
   const bestId = runs.find((r) => r.status === "completed")?.id;
@@ -83,8 +84,16 @@ async function Comparison({
           <tr>
             <th className="py-2 pr-4">Prompt</th>
             <th className="py-2 pr-4">Model</th>
-            <th className="py-2 pr-4">Accuracy</th>
-            <th className="py-2 pr-4">Failed</th>
+            <th className="py-2 pr-4" title="Output equals the label exactly">
+              Exact
+            </th>
+            <th
+              className="py-2 pr-4"
+              title="Output contains the right label and no other label"
+            >
+              Lenient
+            </th>
+            <th className="py-2 pr-4">Failed (exact)</th>
             <th className="py-2 pr-4">Avg latency</th>
             <th className="py-2 pr-4">Total cost</th>
             <th className="py-2 pr-4">Status</th>
@@ -108,6 +117,20 @@ async function Comparison({
               </td>
               <td className="py-2 pr-4 font-mono">{r.model}</td>
               <td className="py-2 pr-4">{pct(r.accuracy)}</td>
+              <td className="py-2 pr-4">
+                {pct(r.lenientAccuracy)}
+                {r.accuracy != null &&
+                  r.lenientAccuracy != null &&
+                  r.lenientAccuracy > r.accuracy && (
+                    <span
+                      className="ml-1 text-xs text-yellow-400"
+                      title="Right label, but the output ignored the format"
+                    >
+                      (+{((r.lenientAccuracy - r.accuracy) * 100).toFixed(0)}{" "}
+                      format)
+                    </span>
+                  )}
+              </td>
               <td className="py-2 pr-4">
                 {failedByRun.get(r.id) ?? 0}/{r._count.results}
               </td>
@@ -141,7 +164,11 @@ export default function ResultsPage({ searchParams }: PageProps<"/results">) {
     <main className="p-8">
       <h1 className="text-2xl font-bold">Results</h1>
       <p className="mt-2 text-gray-400">
-        Every run on one test set, side by side. Best accuracy first.
+        Every run on one test set, side by side, best exact accuracy first.
+        <strong> Exact</strong> = the output is exactly the label.{" "}
+        <strong>Lenient</strong> = the output contains the right label and no
+        other label, so a gap between them means &quot;right answer, wrong
+        format&quot;.
       </p>
       <Suspense fallback={<p className="mt-6">Loading...</p>}>
         <Comparison searchParams={searchParams} />
