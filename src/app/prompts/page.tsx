@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { PromptTemplate } from "@/components/PromptTemplate";
@@ -8,6 +9,8 @@ import {
   SkeletonList,
 } from "@/components/ui";
 import PromptForm from "./PromptForm";
+
+export const metadata: Metadata = { title: "Prompts" };
 
 async function PromptList() {
   const prompts = await prisma.prompt.findMany({

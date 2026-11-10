@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
@@ -18,6 +19,8 @@ import {
   THead,
   Tr,
 } from "@/components/ui";
+
+export const metadata: Metadata = { title: "Results" };
 
 function pct(n: number | null) {
   return n != null ? `${(n * 100).toFixed(1)}%` : "—";

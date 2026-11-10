@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import {
@@ -8,6 +9,8 @@ import {
   SkeletonList,
 } from "@/components/ui";
 import UploadForm from "./UploadForm";
+
+export const metadata: Metadata = { title: "Test sets" };
 
 async function TestSetList() {
   const testSets = await prisma.testSet.findMany({

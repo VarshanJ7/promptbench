@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -18,6 +19,8 @@ import {
   Tr,
 } from "@/components/ui";
 import RunForm from "./RunForm";
+
+export const metadata: Metadata = { title: "Runs" };
 
 // A run happens inside the Start-run Server Action; give it up to 5 minutes
 // on hosts that enforce a function timeout (e.g. Vercel).

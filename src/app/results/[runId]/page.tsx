@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -5,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { fillTemplate } from "@/lib/runner";
 import { AccuracyBar, StatusBadge } from "@/components/results";
 import { Badge, Card, cn, Stat, type BadgeTone } from "@/components/ui";
+
+export const metadata: Metadata = { title: "Run details" };
 
 function pct(n: number | null) {
   return n != null ? `${(n * 100).toFixed(1)}%` : "—";

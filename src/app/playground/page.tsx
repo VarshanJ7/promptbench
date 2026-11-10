@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { availableModels, missingProviderKeys } from "@/lib/providers";
 import { Alert, PageHeader, Skeleton, SkeletonForm } from "@/components/ui";
 import PlaygroundForm from "./PlaygroundForm";
+
+export const metadata: Metadata = { title: "Playground" };
 
 async function PlaygroundLoader() {
   // Read API-key presence per request, not baked in at build time.

@@ -16,8 +16,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PromptBench",
-  description: "LLM evaluation workbench",
+  title: {
+    default: "PromptBench · LLM evaluation workbench",
+    template: "%s · PromptBench",
+  },
+  description:
+    "Run one prompt across OpenAI, Anthropic and Gemini models on a labelled test set, and compare accuracy, latency and cost.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
