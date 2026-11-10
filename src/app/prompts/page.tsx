@@ -33,7 +33,7 @@ async function PromptList() {
 
 export default function PromptsPage() {
   return (
-    <main className="p-8">
+    <main>
       <h1 className="text-2xl font-bold">Prompts</h1>
       <PromptForm />
       <h2 className="mt-10 text-xl font-semibold">Saved prompts</h2>

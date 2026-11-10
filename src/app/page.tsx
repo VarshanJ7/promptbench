@@ -9,7 +9,7 @@ const steps = [
 
 export default function Home() {
   return (
-    <main className="p-8">
+    <main>
       <h1 className="text-3xl font-bold">PromptBench</h1>
       <p className="mt-2 max-w-2xl text-gray-400">
         An LLM evaluation workbench: run the same prompt across OpenAI,

@@ -1,26 +1,70 @@
 @import "tailwindcss";
 
+/*
+  PromptBench design tokens (dark only).
+  One accent (indigo). Status colours (emerald / amber / red) are reserved for
+  meaning: correct, format issue, wrong/error.
+*/
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+
+  /* Surfaces */
+  --color-canvas: #09090b; /* page background */
+  --color-surface: #111113; /* cards, table body */
+  --color-surface-raised: #1a1a1e; /* hover rows, inputs, active nav */
+  --color-line: #26262b; /* default borders and dividers */
+  --color-line-strong: #3a3a42; /* input borders, hover borders */
+
+  /* Text */
+  --color-fg: #f4f4f5; /* primary text */
+  --color-fg-muted: #a1a1aa; /* secondary text */
+  --color-fg-subtle: #8b8b94; /* captions, table headers (AA on canvas) */
+
+  /* Accent */
+  --color-accent: #5b5bd6; /* filled buttons (white text passes AA) */
+  --color-accent-hover: #6b6be0;
+  --color-accent-text: #9b9bff; /* accent used as text / outlines on dark */
+  --color-accent-soft: rgb(91 91 214 / 0.14); /* tinted backgrounds */
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--color-canvas);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-fg);
+}
+
+/* One consistent, clearly visible focus ring for keyboard users. */
+:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Quiet scrollbars that match the dark surfaces. */
+* {
+  scrollbar-color: var(--color-line-strong) transparent;
+  scrollbar-width: thin;
+}
+
+/* Native <option> lists render on the OS surface; keep them readable. */
+option,
+optgroup {
+  background: var(--color-surface-raised);
+  color: var(--color-fg);
 }

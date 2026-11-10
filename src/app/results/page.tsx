@@ -161,7 +161,7 @@ async function Comparison({
 
 export default function ResultsPage({ searchParams }: PageProps<"/results">) {
   return (
-    <main className="p-8">
+    <main>
       <h1 className="text-2xl font-bold">Results</h1>
       <p className="mt-2 text-gray-400">
         Every run on one test set, side by side, best exact accuracy first.

@@ -26,7 +26,7 @@ async function TestSetList() {
 
 export default function TestSetsPage() {
   return (
-    <main className="p-8">
+    <main>
       <h1 className="text-2xl font-bold">Test sets</h1>
       <UploadForm />
       <h2 className="mt-10 text-xl font-semibold">Saved test sets</h2>

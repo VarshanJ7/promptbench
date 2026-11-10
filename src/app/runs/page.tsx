@@ -104,7 +104,7 @@ async function RunList() {
 
 export default function RunsPage() {
   return (
-    <main className="p-8">
+    <main>
       <h1 className="text-2xl font-bold">Runs</h1>
       <Suspense fallback={<p className="mt-6">Loading...</p>}>
         <RunFormLoader />

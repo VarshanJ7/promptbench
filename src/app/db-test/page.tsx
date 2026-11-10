@@ -12,7 +12,7 @@ async function TestSetCount() {
 
 export default function DbTestPage() {
   return (
-    <main className="p-8">
+    <main>
       <h1 className="text-2xl font-bold">Database test</h1>
       <Suspense fallback={<p className="mt-4">Loading...</p>}>
         <TestSetCount />

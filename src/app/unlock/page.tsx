@@ -35,7 +35,7 @@ async function UnlockBody({
 
 export default function UnlockPage({ searchParams }: PageProps<"/unlock">) {
   return (
-    <main className="p-8">
+    <main>
       <h1 className="text-2xl font-bold">Unlock</h1>
       <p className="mt-2 text-gray-400">
         Anyone can view results. Uploading test sets, creating prompts and

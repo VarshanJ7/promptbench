@@ -28,7 +28,7 @@ async function PlaygroundLoader() {
 
 export default function PlaygroundPage() {
   return (
-    <main className="p-8">
+    <main>
       <h1 className="text-2xl font-bold">Playground</h1>
       <p className="mt-2 text-gray-400">
         Send one prompt to one model to check a provider.

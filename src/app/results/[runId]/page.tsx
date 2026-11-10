@@ -190,7 +190,7 @@ export default function RunResultPage({
   params,
 }: PageProps<"/results/[runId]">) {
   return (
-    <main className="p-8">
+    <main>
       <Link href="/results" className="text-sm text-gray-400 underline">
         ← All results
       </Link>
