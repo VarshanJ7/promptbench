@@ -1,89 +1,124 @@
 "use client";
 
 import { useActionState } from "react";
+import {
+  Alert,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  EmptyIcon,
+  EmptyState,
+  Field,
+  Select,
+  Spinner,
+  Textarea,
+} from "@/components/ui";
 import { runPlayground, type PlaygroundState } from "./actions";
 
 const initialState: PlaygroundState = {};
 
 export default function PlaygroundForm({
   models,
+  footer,
 }: {
-  models: { id: string; label: string }[];
+  models: { id: string; label: string; provider?: string }[];
+  footer?: React.ReactNode;
 }) {
   const [state, formAction, pending] = useActionState(
     runPlayground,
     initialState
   );
 
-  return (
-    <div className="mt-6 max-w-2xl">
-      <form action={formAction} className="space-y-4">
-        <div>
-          <label htmlFor="model" className="mb-1 block text-sm">
-            Model
-          </label>
-          <select
-            id="model"
-            name="model"
-            className="rounded border border-gray-600 bg-transparent px-3 py-2"
-          >
-            {models.map((m) => (
-              <option key={m.id} value={m.id} className="text-black">
-                {m.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="prompt" className="mb-1 block text-sm">
-            Prompt
-          </label>
-          <textarea
-            id="prompt"
-            name="prompt"
-            required
-            rows={4}
-            defaultValue="Reply with exactly one word: hello"
-            className="w-full rounded border border-gray-600 bg-transparent px-3 py-2 font-mono text-sm"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded bg-white px-4 py-2 text-black disabled:opacity-50"
-        >
-          {pending ? "Calling model..." : "Send"}
-        </button>
-      </form>
+  // Group the dropdown by provider, preserving order.
+  const groups = new Map<string, typeof models>();
+  for (const m of models) {
+    const key = m.provider ?? "";
+    groups.set(key, [...(groups.get(key) ?? []), m]);
+  }
 
-      {state.error && <p className="mt-4 text-red-400">{state.error}</p>}
-      {state.result && (
-        <div className="mt-6 rounded border border-gray-700 p-4">
-          <pre className="whitespace-pre-wrap font-mono text-sm">
-            {state.result.text || "(empty response)"}
-          </pre>
-          <dl className="mt-4 grid grid-cols-4 gap-2 text-sm text-gray-400">
-            <div>
-              <dt>Input tokens</dt>
-              <dd className="text-white">{state.result.inputTokens}</dd>
-            </div>
-            <div>
-              <dt>Output tokens</dt>
-              <dd className="text-white">{state.result.outputTokens}</dd>
-            </div>
-            <div>
-              <dt>Latency</dt>
-              <dd className="text-white">{state.result.latencyMs} ms</dd>
-            </div>
-            <div>
-              <dt>Cost</dt>
-              <dd className="text-white">
-                ${state.result.costUsd.toFixed(6)}
-              </dd>
-            </div>
-          </dl>
-        </div>
-      )}
+  return (
+    <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+      <Card>
+        <CardHeader title="Request" />
+        <CardBody>
+          <form action={formAction} className="space-y-5">
+            <Field label="Model" htmlFor="model">
+              <Select id="model" name="model">
+                {[...groups].map(([group, opts]) =>
+                  group ? (
+                    <optgroup key={group} label={group}>
+                      {opts.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ) : (
+                    opts.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.label}
+                      </option>
+                    ))
+                  )
+                )}
+              </Select>
+            </Field>
+            <Field label="Prompt" htmlFor="prompt">
+              <Textarea
+                id="prompt"
+                name="prompt"
+                required
+                rows={6}
+                defaultValue="Reply with exactly one word: hello"
+                className="font-mono text-[13px]"
+              />
+            </Field>
+            <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+              {pending && <Spinner />}
+              {pending ? "Calling model..." : "Send"}
+            </Button>
+          </form>
+          {footer && <div className="mt-4 border-t border-line pt-3">{footer}</div>}
+        </CardBody>
+      </Card>
+
+      <div aria-live="polite">
+        {state.error ? (
+          <Alert tone="error">{state.error}</Alert>
+        ) : state.result ? (
+          <Card className={pending ? "opacity-60 transition-opacity" : undefined}>
+            <CardHeader title="Response" />
+            <CardBody>
+              <pre className="max-h-[28rem] overflow-auto whitespace-pre-wrap break-words rounded-md border border-line bg-canvas p-3 font-mono text-[13px] leading-relaxed text-fg">
+                {state.result.text || "(empty response)"}
+              </pre>
+              <dl className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-line bg-line sm:grid-cols-4">
+                {[
+                  ["Input tokens", state.result.inputTokens],
+                  ["Output tokens", state.result.outputTokens],
+                  ["Latency", `${state.result.latencyMs} ms`],
+                  ["Cost", `$${state.result.costUsd.toFixed(6)}`],
+                ].map(([label, value]) => (
+                  <div key={label} className="bg-surface px-3 py-2.5">
+                    <dt className="text-xs text-fg-subtle">{label}</dt>
+                    <dd className="mt-0.5 text-sm font-medium tabular-nums text-fg">
+                      {value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </CardBody>
+          </Card>
+        ) : (
+          <EmptyState
+            icon={pending ? <Spinner className="size-4" /> : <EmptyIcon kind="reply" />}
+            title={pending ? "Calling model..." : "No response yet."}
+            description="The model's reply, token counts, latency and cost appear here."
+            className="lg:min-h-[22rem] lg:justify-center"
+          />
+        )}
+      </div>
     </div>
   );
 }

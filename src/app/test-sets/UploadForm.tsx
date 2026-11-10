@@ -1,6 +1,17 @@
 "use client";
 
 import { useActionState } from "react";
+import {
+  Alert,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Field,
+  FileInput,
+  Input,
+  Spinner,
+} from "@/components/ui";
 import { uploadTestSet, type UploadState } from "./actions";
 
 const initialState: UploadState = {};
@@ -12,42 +23,43 @@ export default function UploadForm() {
   );
 
   return (
-    <form action={formAction} className="mt-6 max-w-md space-y-4">
-      <div>
-        <label htmlFor="name" className="mb-1 block text-sm">
-          Test set name
-        </label>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          required
-          placeholder="e.g. Shopee support messages"
-          className="w-full rounded border border-gray-600 bg-transparent px-3 py-2"
-        />
-      </div>
-      <div>
-        <label htmlFor="file" className="mb-1 block text-sm">
-          CSV file (columns: input, expected)
-        </label>
-        <input
-          id="file"
-          name="file"
-          type="file"
-          accept=".csv"
-          required
-          className="block w-full text-sm"
-        />
-      </div>
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded bg-white px-4 py-2 text-black disabled:opacity-50"
-      >
-        {pending ? "Uploading..." : "Upload"}
-      </button>
-      {state.error && <p className="text-red-400">{state.error}</p>}
-      {state.success && <p className="text-green-400">{state.success}</p>}
-    </form>
+    <Card>
+      <CardHeader
+        title="Upload a test set"
+        description="One row per test case."
+      />
+      <CardBody>
+        <form action={formAction} className="space-y-5">
+          <Field label="Test set name" htmlFor="name">
+            <Input
+              id="name"
+              name="name"
+              type="text"
+              required
+              placeholder="e.g. Shopee support messages"
+            />
+          </Field>
+          <Field
+            label="CSV file (columns: input, expected)"
+            htmlFor="file"
+            hint={
+              <>
+                Header row must include{" "}
+                <code className="font-mono text-fg-muted">input</code> and{" "}
+                <code className="font-mono text-fg-muted">expected</code>.
+              </>
+            }
+          >
+            <FileInput id="file" name="file" accept=".csv" required />
+          </Field>
+          <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+            {pending && <Spinner />}
+            {pending ? "Uploading..." : "Upload"}
+          </Button>
+          {state.error && <Alert tone="error">{state.error}</Alert>}
+          {state.success && <Alert tone="success">{state.success}</Alert>}
+        </form>
+      </CardBody>
+    </Card>
   );
 }

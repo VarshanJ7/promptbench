@@ -1,5 +1,12 @@
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
+import { PromptTemplate } from "@/components/PromptTemplate";
+import {
+  EmptyIcon,
+  EmptyState,
+  PageHeader,
+  SkeletonList,
+} from "@/components/ui";
 import PromptForm from "./PromptForm";
 
 async function PromptList() {
@@ -9,22 +16,29 @@ async function PromptList() {
   });
 
   if (prompts.length === 0) {
-    return <p className="mt-4 text-gray-400">No prompts yet.</p>;
+    return (
+      <EmptyState
+        icon={<EmptyIcon kind="prompt" />}
+        title="No prompts yet."
+        description="Write a template with an {{input}} slot using the form."
+      />
+    );
   }
 
   return (
-    <ul className="mt-4 space-y-3">
+    <ul className="space-y-2.5">
       {prompts.map((p) => (
-        <li key={p.id} className="rounded border border-gray-700 px-4 py-3">
-          <div className="flex items-baseline justify-between gap-4">
-            <span className="font-medium">{p.name}</span>
-            <span className="text-sm text-gray-400">
+        <li
+          key={p.id}
+          className="rounded-lg border border-line bg-surface p-4 shadow-sm shadow-black/20"
+        >
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <span className="font-medium text-fg">{p.name}</span>
+            <span className="text-xs tabular-nums text-fg-subtle">
               {p._count.runs} runs · {p.createdAt.toLocaleDateString()}
             </span>
           </div>
-          <pre className="mt-2 whitespace-pre-wrap font-mono text-sm text-gray-300">
-            {p.template}
-          </pre>
+          <PromptTemplate template={p.template} className="mt-3" />
         </li>
       ))}
     </ul>
@@ -34,12 +48,21 @@ async function PromptList() {
 export default function PromptsPage() {
   return (
     <main>
-      <h1 className="text-2xl font-bold">Prompts</h1>
-      <PromptForm />
-      <h2 className="mt-10 text-xl font-semibold">Saved prompts</h2>
-      <Suspense fallback={<p className="mt-4">Loading...</p>}>
-        <PromptList />
-      </Suspense>
+      <PageHeader
+        title="Prompts"
+        description="Templates you can run against any test set and model."
+      />
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start">
+        <div className="lg:sticky lg:top-20">
+          <PromptForm />
+        </div>
+        <section>
+          <h2 className="mb-3 text-sm font-semibold text-fg">Saved prompts</h2>
+          <Suspense fallback={<SkeletonList rows={3} rowClassName="h-32" />}>
+            <PromptList />
+          </Suspense>
+        </section>
+      </div>
     </main>
   );
 }

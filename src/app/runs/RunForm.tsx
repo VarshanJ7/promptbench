@@ -1,6 +1,20 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
+import {
+  Alert,
+  Button,
+  buttonClasses,
+  Card,
+  CardBody,
+  CardHeader,
+  EmptyIcon,
+  EmptyState,
+  Field,
+  Select as SelectControl,
+  Spinner,
+} from "@/components/ui";
 import { startRun, type RunFormState } from "./actions";
 
 type Option = { id: string; label: string; group?: string };
@@ -23,33 +37,25 @@ function Select({
     groups.set(key, [...(groups.get(key) ?? []), o]);
   }
   const renderOption = (o: Option) => (
-    <option key={o.id} value={o.id} className="text-black">
+    <option key={o.id} value={o.id}>
       {o.label}
     </option>
   );
 
   return (
-    <div>
-      <label htmlFor={name} className="mb-1 block text-sm">
-        {label}
-      </label>
-      <select
-        id={name}
-        name={name}
-        required
-        className="w-full rounded border border-gray-600 bg-transparent px-3 py-2"
-      >
+    <Field label={label} htmlFor={name}>
+      <SelectControl id={name} name={name} required>
         {[...groups].map(([group, opts]) =>
           group ? (
-            <optgroup key={group} label={group} className="text-black">
+            <optgroup key={group} label={group}>
               {opts.map(renderOption)}
             </optgroup>
           ) : (
             opts.map(renderOption)
           )
         )}
-      </select>
-    </div>
+      </SelectControl>
+    </Field>
   );
 }
 
@@ -70,64 +76,92 @@ export default function RunForm({
 
   if (testSets.length === 0 || prompts.length === 0) {
     return (
-      <p className="mt-6 text-gray-400">
-        You need at least one test set (
-        <a href="/test-sets" className="underline">
-          upload one
-        </a>
-        ) and one prompt (
-        <a href="/prompts" className="underline">
-          create one
-        </a>
-        ) before you can start a run.
-      </p>
+      <EmptyState
+        icon={<EmptyIcon kind="run" />}
+        title="Nothing to run yet."
+        description={
+          <>
+            You need at least one test set and one prompt before you can start
+            a run.
+          </>
+        }
+        action={
+          <>
+            <Link href="/test-sets" className={buttonClasses("secondary")}>
+              Upload a test set
+            </Link>
+            <Link href="/prompts" className={buttonClasses("secondary")}>
+              Create a prompt
+            </Link>
+          </>
+        }
+      />
     );
   }
 
   if (models.length === 0) {
     return (
-      <p className="mt-6 text-gray-400">
-        No model provider is configured. Set at least one of{" "}
-        {missingKeys.map((k) => k.env).join(", ")} and restart the server.
-      </p>
+      <Alert tone="warning" title="No model provider is configured.">
+        Set at least one of {missingKeys.map((k) => k.env).join(", ")} and
+        restart the server.
+      </Alert>
     );
   }
 
   const s = state.summary;
 
   return (
-    <div className="mt-6 max-w-md">
-      <form action={formAction} className="space-y-4">
-        <Select name="testSetId" label="Test set" options={testSets} />
-        <Select name="promptId" label="Prompt" options={prompts} />
-        <Select name="model" label="Model" options={models} />
-        {missingKeys.length > 0 && (
-          <p className="text-xs text-gray-500">
-            Hidden (no API key):{" "}
-            {missingKeys.map((k) => `${k.provider} (${k.env})`).join(", ")}
-          </p>
-        )}
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded bg-white px-4 py-2 text-black disabled:opacity-50"
-        >
-          {pending ? "Running... (this can take a while)" : "Start run"}
-        </button>
-        <p className="text-xs text-gray-500">{limitsNote}</p>
-      </form>
+    <Card>
+      <CardHeader
+        title="Start a run"
+        description="Calls the model once per test case, 5 at a time."
+      />
+      <CardBody>
+        <form action={formAction}>
+          <div className="grid gap-5 md:grid-cols-3">
+            <Select name="testSetId" label="Test set" options={testSets} />
+            <Select name="promptId" label="Prompt" options={prompts} />
+            <Select name="model" label="Model" options={models} />
+          </div>
 
-      {state.error && <p className="mt-4 text-red-400">{state.error}</p>}
-      {s && (
-        <p className="mt-4 text-green-400">
-          Done: exact {s.correct}/{s.total} (
-          {(s.accuracy * 100).toFixed(1)}%) · lenient {s.lenientCorrect}/
-          {s.total} ({(s.lenientAccuracy * 100).toFixed(1)}%)
-          {s.errors > 0 && `, ${s.errors} API errors`} · avg{" "}
-          {s.avgLatencyMs != null ? `${Math.round(s.avgLatencyMs)} ms` : "n/a"}{" "}
-          · ${s.totalCostUsd.toFixed(5)}
-        </p>
-      )}
-    </div>
+          <div className="mt-5 flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-0.5 text-xs text-fg-subtle">
+              <p>{limitsNote}</p>
+              {missingKeys.length > 0 && (
+                <p>
+                  Hidden (no API key):{" "}
+                  {missingKeys.map((k) => `${k.provider} (${k.env})`).join(", ")}
+                </p>
+              )}
+            </div>
+            <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+              {pending && <Spinner />}
+              {pending ? "Running... (this can take a while)" : "Start run"}
+            </Button>
+          </div>
+        </form>
+
+        {(state.error || s) && (
+          <div className="mt-4">
+            {state.error && <Alert tone="error">{state.error}</Alert>}
+            {s && (
+              <Alert tone="success" title="Done">
+                <span className="tabular-nums">
+                  exact {s.correct}/{s.total} (
+                  {(s.accuracy * 100).toFixed(1)}%) · lenient{" "}
+                  {s.lenientCorrect}/{s.total} (
+                  {(s.lenientAccuracy * 100).toFixed(1)}%)
+                  {s.errors > 0 && `, ${s.errors} API errors`} · avg{" "}
+                  {s.avgLatencyMs != null
+                    ? `${Math.round(s.avgLatencyMs)} ms`
+                    : "n/a"}{" "}
+                  · ${s.totalCostUsd.toFixed(5)}
+                </span>
+              </Alert>
+            )}
+          </div>
+        )}
+      </CardBody>
+    </Card>
   );
 }

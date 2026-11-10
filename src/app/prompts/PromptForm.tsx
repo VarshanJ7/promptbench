@@ -1,6 +1,17 @@
 "use client";
 
 import { useActionState } from "react";
+import {
+  Alert,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Field,
+  Input,
+  Spinner,
+  Textarea,
+} from "@/components/ui";
 import { createPrompt, type PromptFormState } from "./actions";
 
 const initialState: PromptFormState = {};
@@ -12,44 +23,53 @@ export default function PromptForm() {
   );
 
   return (
-    <form action={formAction} className="mt-6 max-w-2xl space-y-4">
-      <div>
-        <label htmlFor="name" className="mb-1 block text-sm">
-          Prompt name
-        </label>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          required
-          placeholder="e.g. Intent classifier v1"
-          className="w-full rounded border border-gray-600 bg-transparent px-3 py-2"
-        />
-      </div>
-      <div>
-        <label htmlFor="template" className="mb-1 block text-sm">
-          Template (must include <code>{"{{input}}"}</code>)
-        </label>
-        <textarea
-          id="template"
-          name="template"
-          required
-          rows={6}
-          placeholder={
-            "Classify this customer message as one of: refund, shipping, other.\nReply with the label only.\n\nMessage: {{input}}"
-          }
-          className="w-full rounded border border-gray-600 bg-transparent px-3 py-2 font-mono text-sm"
-        />
-      </div>
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded bg-white px-4 py-2 text-black disabled:opacity-50"
-      >
-        {pending ? "Saving..." : "Save prompt"}
-      </button>
-      {state.error && <p className="text-red-400">{state.error}</p>}
-      {state.success && <p className="text-green-400">{state.success}</p>}
-    </form>
+    <Card>
+      <CardHeader
+        title="New prompt"
+        description="Each test case's input replaces the {{input}} slot."
+      />
+      <CardBody>
+        <form action={formAction} className="space-y-5">
+          <Field label="Prompt name" htmlFor="name">
+            <Input
+              id="name"
+              name="name"
+              type="text"
+              required
+              placeholder="e.g. Intent classifier v1"
+            />
+          </Field>
+          <Field
+            label={
+              <>
+                Template (must include{" "}
+                <code className="rounded bg-accent-soft px-1 font-mono text-xs text-accent-text">
+                  {"{{input}}"}
+                </code>
+                )
+              </>
+            }
+            htmlFor="template"
+          >
+            <Textarea
+              id="template"
+              name="template"
+              required
+              rows={7}
+              placeholder={
+                "Classify this customer message as one of: refund, shipping, other.\nReply with the label only.\n\nMessage: {{input}}"
+              }
+              className="font-mono text-[13px]"
+            />
+          </Field>
+          <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+            {pending && <Spinner />}
+            {pending ? "Saving..." : "Save prompt"}
+          </Button>
+          {state.error && <Alert tone="error">{state.error}</Alert>}
+          {state.success && <Alert tone="success">{state.success}</Alert>}
+        </form>
+      </CardBody>
+    </Card>
   );
 }

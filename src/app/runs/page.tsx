@@ -4,6 +4,19 @@ import { connection } from "next/server";
 import { MAX_CASES_PER_RUN, MAX_RUNS_PER_HOUR } from "@/lib/limits";
 import { prisma } from "@/lib/prisma";
 import { availableModels, missingProviderKeys } from "@/lib/providers";
+import { AccuracyBar, StatusBadge } from "@/components/results";
+import {
+  EmptyIcon,
+  EmptyState,
+  PageHeader,
+  SkeletonForm,
+  SkeletonList,
+  TableShell,
+  Td,
+  Th,
+  THead,
+  Tr,
+} from "@/components/ui";
 import RunForm from "./RunForm";
 
 // A run happens inside the Start-run Server Action; give it up to 5 minutes
@@ -51,68 +64,97 @@ async function RunList() {
   });
 
   if (runs.length === 0) {
-    return <p className="mt-4 text-gray-400">No runs yet.</p>;
+    return (
+      <EmptyState
+        icon={<EmptyIcon kind="run" />}
+        title="No runs yet."
+        description="Start one above; finished runs are listed here."
+      />
+    );
   }
 
   return (
-    <table className="mt-4 w-full text-left text-sm">
-      <thead className="text-gray-400">
+    <TableShell minWidth="min-w-[860px]">
+      <THead>
         <tr>
-          <th className="py-2 pr-4">Test set</th>
-          <th className="py-2 pr-4">Prompt</th>
-          <th className="py-2 pr-4">Model</th>
-          <th className="py-2 pr-4">Status</th>
-          <th className="py-2 pr-4">Results</th>
-          <th className="py-2 pr-4">Exact</th>
-          <th className="py-2 pr-4">Lenient</th>
-          <th className="py-2 pr-4">Avg latency</th>
-          <th className="py-2 pr-4">Cost</th>
+          <Th>Test set</Th>
+          <Th>Prompt</Th>
+          <Th>Model</Th>
+          <Th>Status</Th>
+          <Th align="right">Results</Th>
+          <Th align="right">Exact</Th>
+          <Th align="right">Lenient</Th>
+          <Th align="right">Avg latency</Th>
+          <Th align="right">Cost</Th>
         </tr>
-      </thead>
+      </THead>
       <tbody>
-        {runs.map((r) => (
-          <tr key={r.id} className="border-t border-gray-800">
-            <td className="py-2 pr-4">
-              <Link href={`/results/${r.id}`} className="underline">
-                {r.testSet.name}
-              </Link>
-            </td>
-            <td className="py-2 pr-4">{r.prompt.name}</td>
-            <td className="py-2 pr-4 font-mono">{r.model}</td>
-            <td className="py-2 pr-4">{r.status}</td>
-            <td className="py-2 pr-4">{r._count.results}</td>
-            <td className="py-2 pr-4">
-              {r.accuracy != null ? `${(r.accuracy * 100).toFixed(1)}%` : "—"}
-            </td>
-            <td className="py-2 pr-4">
-              {r.lenientAccuracy != null
-                ? `${(r.lenientAccuracy * 100).toFixed(1)}%`
-                : "—"}
-            </td>
-            <td className="py-2 pr-4">
-              {r.avgLatencyMs != null ? `${Math.round(r.avgLatencyMs)} ms` : "—"}
-            </td>
-            <td className="py-2 pr-4">
-              {r.totalCostUsd != null ? `$${r.totalCostUsd.toFixed(5)}` : "—"}
-            </td>
-          </tr>
-        ))}
+        {runs.map((r) => {
+          const exact =
+            r.accuracy != null ? `${(r.accuracy * 100).toFixed(1)}%` : "—";
+          const lenient =
+            r.lenientAccuracy != null
+              ? `${(r.lenientAccuracy * 100).toFixed(1)}%`
+              : "—";
+          return (
+            <Tr key={r.id}>
+              <Td className="max-w-[14rem]">
+                <Link
+                  href={`/results/${r.id}`}
+                  className="block truncate font-medium text-accent-text hover:text-fg"
+                  title={r.testSet.name}
+                >
+                  {r.testSet.name}
+                </Link>
+              </Td>
+              <Td className="max-w-[14rem] truncate text-fg-muted" title={r.prompt.name}>
+                {r.prompt.name}
+              </Td>
+              <Td className="whitespace-nowrap font-mono text-xs text-fg-muted">
+                {r.model}
+              </Td>
+              <Td>
+                <StatusBadge status={r.status} />
+              </Td>
+              <Td numeric className="text-fg-muted">
+                {r._count.results}
+              </Td>
+              <Td numeric>
+                <AccuracyBar value={r.accuracy} label={exact} />
+              </Td>
+              <Td numeric>
+                <AccuracyBar value={r.lenientAccuracy} label={lenient} tone="lenient" />
+              </Td>
+              <Td numeric className="text-fg-muted">
+                {r.avgLatencyMs != null ? `${Math.round(r.avgLatencyMs)} ms` : "—"}
+              </Td>
+              <Td numeric className="text-fg-muted">
+                {r.totalCostUsd != null ? `$${r.totalCostUsd.toFixed(5)}` : "—"}
+              </Td>
+            </Tr>
+          );
+        })}
       </tbody>
-    </table>
+    </TableShell>
   );
 }
 
 export default function RunsPage() {
   return (
     <main>
-      <h1 className="text-2xl font-bold">Runs</h1>
-      <Suspense fallback={<p className="mt-6">Loading...</p>}>
+      <PageHeader
+        title="Runs"
+        description="Pick a test set, a prompt and a model, then score every case."
+      />
+      <Suspense fallback={<SkeletonForm fields={3} />}>
         <RunFormLoader />
       </Suspense>
-      <h2 className="mt-10 text-xl font-semibold">Recent runs</h2>
-      <Suspense fallback={<p className="mt-4">Loading...</p>}>
-        <RunList />
-      </Suspense>
+      <section className="mt-10">
+        <h2 className="mb-3 text-sm font-semibold text-fg">Recent runs</h2>
+        <Suspense fallback={<SkeletonList rows={4} rowClassName="h-12" />}>
+          <RunList />
+        </Suspense>
+      </section>
     </main>
   );
 }
