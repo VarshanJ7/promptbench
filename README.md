@@ -8,14 +8,6 @@ latency and cost side by side, plus the exact cases each model got wrong.
 It was built around a real task: classifying Malaysian e-commerce customer
 messages (English, Malay and Manglish) into five support categories.
 
-## Screenshots
-
-> _Add screenshots here._
->
-> - Results comparison table: `docs/screenshots/results.png`
-> - Per-run failed cases: `docs/screenshots/run-detail.png`
-> - Run page: `docs/screenshots/runs.png`
-
 ## Features
 
 - **Test sets**: upload a CSV with `input,expected` columns (up to 500 rows, 1 MB).
@@ -52,6 +44,7 @@ Sample data lives in `sample-data/`:
 - `shopee-sample.csv`: 15 rows.
 - `shopee-harder.csv`: 50 rows, including slang, typos and ambiguous or
   two-issue messages.
+  - `shopee-harder-v2.csv`: 45 rows, the 50-row set with 5 ambiguous rows removed (see Findings).
 
 ### Environment variables
 
@@ -171,24 +164,10 @@ Known caveats:
 
 ## Findings
 
-> _To be filled in with real numbers from real runs. Nothing below is a result yet._
+Tested on 45-50 Malaysian e-commerce support messages (English, Malay, Manglish), one run per combination, with GPT-4o mini and GPT-5 nano.
 
-### Setup
+- **Output-format instructions mattered for GPT-4o mini, not for GPT-5 nano.** Without "reply with only the category", GPT-4o mini scored 0% exact but about 98% lenient, meaning it named the right label inside longer text.
+- **Best accuracy per dollar was a strict prompt on GPT-4o mini:** 94-97.8% exact at about $0.0005 per run and about 1 second per call.
+- **The errors were mostly ambiguous messages** that mix two problems, where a single label is arguably wrong.
 
-- Test set(s):
-- Prompt(s):
-- Models:
-- Date:
-
-### Results
-
-| Test set | Prompt | Model | Exact | Lenient | Avg latency | Cost / run |
-|---|---|---|---|---|---|---|
-| | | | | | | |
-
-### Observations
-
-- _What separated exact from lenient accuracy?_
-- _Which messages did every model get wrong?_
-- _Best accuracy per dollar?_
-- _Effect of prompt wording on format compliance?_
+Limitations: small test sets, one run each, a single annotator, and 5 ambiguous rows removed after the first results, so the cleaned set is easier than the original. Only OpenAI models were run.
