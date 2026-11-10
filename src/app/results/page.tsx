@@ -1,6 +1,23 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import {
+  AccuracyBar,
+  BestBadge,
+  FormatBadge,
+  StatusBadge,
+} from "@/components/results";
+import {
+  buttonClasses,
+  Card,
+  cn,
+  PageHeader,
+  TableShell,
+  Td,
+  Th,
+  THead,
+  Tr,
+} from "@/components/ui";
 
 function pct(n: number | null) {
   return n != null ? `${(n * 100).toFixed(1)}%` : "—";
@@ -23,13 +40,15 @@ async function Comparison({
 
   if (testSets.length === 0) {
     return (
-      <p className="mt-6 text-gray-400">
-        No runs yet.{" "}
-        <Link href="/runs" className="underline">
+      <Card className="flex flex-col items-center border-dashed px-6 py-14 text-center">
+        <p className="text-sm font-medium text-fg">No runs yet.</p>
+        <p className="mt-1 text-sm text-fg-muted">
+          Results appear here once a run finishes.
+        </p>
+        <Link href="/runs" className={cn(buttonClasses("primary"), "mt-5")}>
           Start one
         </Link>
-        .
-      </p>
+      </Card>
     );
   }
 
@@ -63,114 +82,180 @@ async function Comparison({
 
   return (
     <>
-      <div className="mt-6 flex flex-wrap gap-2">
-        {testSets.map((t) => (
-          <Link
-            key={t.id}
-            href={`/results?testSet=${t.id}`}
-            className={`rounded border px-3 py-1 text-sm ${
-              t.id === selected.id
-                ? "border-white bg-white text-black"
-                : "border-gray-600"
-            }`}
-          >
-            {t.name}
-          </Link>
-        ))}
-      </div>
+      {/* Test-set switcher */}
+      <nav aria-label="Test set" className="mb-4 flex flex-wrap gap-1.5">
+        {testSets.map((t) => {
+          const active = t.id === selected.id;
+          return (
+            <Link
+              key={t.id}
+              href={`/results?testSet=${t.id}`}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "rounded-md border px-3 py-1.5 text-sm font-medium transition-colors duration-150",
+                active
+                  ? "border-accent-text/40 bg-accent-soft text-fg"
+                  : "border-line bg-surface text-fg-muted hover:border-line-strong hover:text-fg"
+              )}
+            >
+              {t.name}
+            </Link>
+          );
+        })}
+      </nav>
 
-      <table className="mt-6 w-full text-left text-sm">
-        <thead className="text-gray-400">
+      <TableShell minWidth="min-w-[920px]">
+        <THead>
           <tr>
-            <th className="py-2 pr-4">Prompt</th>
-            <th className="py-2 pr-4">Model</th>
-            <th className="py-2 pr-4" title="Output equals the label exactly">
+            <Th>Prompt</Th>
+            <Th>Model</Th>
+            <Th align="right" title="Output equals the label exactly">
               Exact
-            </th>
-            <th
-              className="py-2 pr-4"
+            </Th>
+            <Th
+              align="right"
               title="Output contains the right label and no other label"
             >
               Lenient
-            </th>
-            <th className="py-2 pr-4">Failed (exact)</th>
-            <th className="py-2 pr-4">Avg latency</th>
-            <th className="py-2 pr-4">Total cost</th>
-            <th className="py-2 pr-4">Status</th>
-            <th className="py-2 pr-4">Date</th>
-            <th className="py-2 pr-4"></th>
+            </Th>
+            <Th align="right">Failed (exact)</Th>
+            <Th align="right">Avg latency</Th>
+            <Th align="right">Total cost</Th>
+            <Th>Status</Th>
+            <Th>Date</Th>
+            <Th>
+              <span className="sr-only">Details</span>
+            </Th>
           </tr>
-        </thead>
+        </THead>
         <tbody>
-          {runs.map((r) => (
-            <tr
-              key={r.id}
-              className={`border-t border-gray-800 ${
-                r.id === bestId ? "bg-green-950/40" : ""
-              }`}
-            >
-              <td className="py-2 pr-4">
-                {r.prompt.name}
-                {r.id === bestId && (
-                  <span className="ml-2 text-xs text-green-400">best</span>
+          {runs.map((r) => {
+            const isBest = r.id === bestId;
+            const failedCount = failedByRun.get(r.id) ?? 0;
+            return (
+              <Tr
+                key={r.id}
+                className={cn(
+                  isBest &&
+                    "bg-accent-soft/40 shadow-[inset_2px_0_0_0_var(--color-accent-text)] hover:bg-accent-soft/60"
                 )}
-              </td>
-              <td className="py-2 pr-4 font-mono">{r.model}</td>
-              <td className="py-2 pr-4">{pct(r.accuracy)}</td>
-              <td className="py-2 pr-4">
-                {pct(r.lenientAccuracy)}
-                {r.accuracy != null &&
-                  r.lenientAccuracy != null &&
-                  r.lenientAccuracy > r.accuracy && (
-                    <span
-                      className="ml-1 text-xs text-yellow-400"
-                      title="Right label, but the output ignored the format"
-                    >
-                      (+{((r.lenientAccuracy - r.accuracy) * 100).toFixed(0)}{" "}
-                      format)
+              >
+                <Td className="max-w-[16rem]">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate font-medium text-fg" title={r.prompt.name}>
+                      {r.prompt.name}
                     </span>
-                  )}
-              </td>
-              <td className="py-2 pr-4">
-                {failedByRun.get(r.id) ?? 0}/{r._count.results}
-              </td>
-              <td className="py-2 pr-4">
-                {r.avgLatencyMs != null
-                  ? `${Math.round(r.avgLatencyMs)} ms`
-                  : "—"}
-              </td>
-              <td className="py-2 pr-4">
-                {r.totalCostUsd != null ? `$${r.totalCostUsd.toFixed(5)}` : "—"}
-              </td>
-              <td className="py-2 pr-4">{r.status}</td>
-              <td className="py-2 pr-4 text-gray-400">
-                {r.createdAt.toLocaleString()}
-              </td>
-              <td className="py-2 pr-4">
-                <Link href={`/results/${r.id}`} className="underline">
-                  Failed cases
-                </Link>
-              </td>
-            </tr>
-          ))}
+                    {isBest && <BestBadge />}
+                  </div>
+                </Td>
+                <Td className="whitespace-nowrap font-mono text-xs text-fg-muted">
+                  {r.model}
+                </Td>
+                <Td numeric>
+                  <AccuracyBar value={r.accuracy} label={pct(r.accuracy)} />
+                </Td>
+                <Td numeric>
+                  <div className="flex flex-col items-end gap-1">
+                    <AccuracyBar
+                      value={r.lenientAccuracy}
+                      label={pct(r.lenientAccuracy)}
+                      tone="lenient"
+                    />
+                    {r.accuracy != null &&
+                      r.lenientAccuracy != null &&
+                      r.lenientAccuracy > r.accuracy && (
+                        <FormatBadge
+                          points={(
+                            (r.lenientAccuracy - r.accuracy) *
+                            100
+                          ).toFixed(0)}
+                        />
+                      )}
+                  </div>
+                </Td>
+                <Td numeric>
+                  <span className={failedCount > 0 ? "text-fg" : "text-fg-subtle"}>
+                    {failedCount}
+                  </span>
+                  <span className="text-fg-subtle">/{r._count.results}</span>
+                </Td>
+                <Td numeric className="text-fg-muted">
+                  {r.avgLatencyMs != null
+                    ? `${Math.round(r.avgLatencyMs)} ms`
+                    : "—"}
+                </Td>
+                <Td numeric className="text-fg-muted">
+                  {r.totalCostUsd != null
+                    ? `$${r.totalCostUsd.toFixed(5)}`
+                    : "—"}
+                </Td>
+                <Td>
+                  <StatusBadge status={r.status} />
+                </Td>
+                <Td className="whitespace-nowrap text-xs text-fg-subtle tabular-nums">
+                  {r.createdAt.toLocaleString()}
+                </Td>
+                <Td align="right">
+                  <Link
+                    href={`/results/${r.id}`}
+                    className="inline-flex items-center gap-1 whitespace-nowrap rounded text-sm font-medium text-accent-text hover:text-fg"
+                  >
+                    Failed cases
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                </Td>
+              </Tr>
+            );
+          })}
         </tbody>
-      </table>
+      </TableShell>
+      <p className="mt-2 text-xs text-fg-subtle sm:hidden">
+        Scroll the table sideways to see every column.
+      </p>
     </>
+  );
+}
+
+function ComparisonSkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Loading results">
+      <div className="mb-4 flex gap-1.5">
+        {[0, 1].map((i) => (
+          <div key={i} className="h-8 w-28 animate-pulse rounded-md bg-surface-raised" />
+        ))}
+      </div>
+      <div className="overflow-hidden rounded-lg border border-line bg-surface">
+        <div className="h-10 border-b border-line bg-canvas/40" />
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center gap-4 border-b border-line px-4 py-4 last:border-0">
+            <div className="h-3 w-32 animate-pulse rounded bg-surface-raised" />
+            <div className="h-3 w-24 animate-pulse rounded bg-surface-raised" />
+            <div className="ml-auto h-3 w-40 animate-pulse rounded bg-surface-raised" />
+          </div>
+        ))}
+      </div>
+      <span className="sr-only">Loading...</span>
+    </div>
   );
 }
 
 export default function ResultsPage({ searchParams }: PageProps<"/results">) {
   return (
     <main>
-      <h1 className="text-2xl font-bold">Results</h1>
-      <p className="mt-2 text-gray-400">
-        Every run on one test set, side by side, best exact accuracy first.
-        <strong> Exact</strong> = the output is exactly the label.{" "}
-        <strong>Lenient</strong> = the output contains the right label and no
-        other label, so a gap between them means &quot;right answer, wrong
-        format&quot;.
-      </p>
-      <Suspense fallback={<p className="mt-6">Loading...</p>}>
+      <PageHeader
+        title="Results"
+        description={
+          <>
+            Every run on one test set, side by side, best exact accuracy first.{" "}
+            <strong className="font-medium text-fg">Exact</strong> = the output
+            is exactly the label.{" "}
+            <strong className="font-medium text-fg">Lenient</strong> = the
+            output contains the right label and no other label, so a gap
+            between them means &quot;right answer, wrong format&quot;.
+          </>
+        }
+      />
+      <Suspense fallback={<ComparisonSkeleton />}>
         <Comparison searchParams={searchParams} />
       </Suspense>
     </main>
