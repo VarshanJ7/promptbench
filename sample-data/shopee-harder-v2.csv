@@ -1,0 +1,46 @@
+input,expected
+"Order since last week still 'preparing to ship', seller ni tidur ke?",delivery_issue
+"Saya order size M tapi dapat size XL, mcm mana nak pakai ni",wrong_item
+"Barang dah sampai tapi pecah, I nak refund penuh please",refund_request
+"Kualiti jahitan teruk, baru basuh sekali dah koyak",product_quality
+"Tq seller, packing kemas gila, barang ori. 5 star!",praise
+"Tracking says delivered but I never received anything leh",delivery_issue
+"Order phone case for iPhone 13, recieved for Samsung pulak",wrong_item
+"Pls refund my money, already cancel order but still kena charge",refund_request
+"The blender very weak lah, cannot even crush ice",product_quality
+"Fast shipping, item exactly as pic, will repeat oder sure",praise
+"Kurier kata alamat tak jumpa, padahal alamat betul. Dah 3 kali reschedule",delivery_issue
+"Item tak sama mcm gambar langsung, warna pudar. Nak return n refund",refund_request
+"Bau plastik kuat sgt, dah jemur 3 hari still busuk",product_quality
+"Seller very responsive, answer all my questions, recommended!!",praise
+"Parcel stuck at Shah Alam hub for 9 days already, no update at all",delivery_issue
+"Order flavour chocolate, dpt strawberry. Anak sy allergic strawberry tau",wrong_item
+"I return the item already 2 weeks, bila refund nak masuk?",refund_request
+"Screen protector ni ada bubble, tak melekat elok",product_quality
+"Murah tapi quality ok giler, worth every sen",praise
+"Delivery guy just throw my parcel over the gate, box all kemek",delivery_issue
+"Wrong colour sent. I chose navy blue, got black",wrong_item
+"Seller cancel my order sendiri but refund still not received after 10 days",refund_request
+"Battery powerbank cepat habis, cas penuh pun tahan 2 jam je",product_quality
+"Barang sampai awal dari jangkaan, terbaik la seller",praise
+"Dah seminggu status 'out for delivery'. Out pergi mana ni?",delivery_issue
+"Bukan model yg sy order. Saya order model 2023, dpt model lama",wrong_item
+"Item rosak masa sampai. Dont want replacement, just give me my money back",refund_request
+"Kasut ni tapak dia dah tercabut lepas pakai 3 kali",product_quality
+"Courier marked 'customer not home' but I was home whole day!!",delivery_issue
+"Saya order 2 item berbeza, dapat 2 item sama",wrong_item
+"Apply return refund dah approve tapi duit tak masuk ShopeePay lagi",refund_request
+"Material very thin, can see through, not like the photo",product_quality
+"Thank u so much, my mom love the baju raya!",praise
+"Lambat gila, order 1hb sampai 20hb. Barang ok tapi",delivery_issue
+"Mau refund, barang expired dah. Tarikh luput bulan lepas",refund_request
+"Zip rosak on first day, kain pun berbulu after one wash",product_quality
+"Super happy with this purchase, 10/10 would buy again",praise
+"Item ok but seller memang lambat pos, 5 hari baru ship",delivery_issue
+"Abang rider very polite, seller pun bagi free gift. Puas hati!",praise
+"Refund pls, I order wrongly, belum buka pun package",refund_request
+"Earphone kiri tak keluar bunyi, baru guna sehari",product_quality
+"Packaging cantik, sesuai untuk hadiah. Thanks seller!",praise
+"Where is my parcel?? Order 2 weeks ago sampai skrg x sampai",delivery_issue
+"Ordered 1kg, received 500g pack only",wrong_item
+"Nak tuntut refund for missing item, dah attach video unboxing",refund_request
